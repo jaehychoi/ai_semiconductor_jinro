@@ -1,10 +1,8 @@
 {
-  "name": "finish_future-career-ai",
+  "name": "ai_semiconductor_jinro",
   "private": true,
   "version": "0.0.0",
-  
   "homepage": "https://jaehychoi.github.io/ai_semiconductor_jinro",
-  
   "type": "module",
   "scripts": {
     "dev": "vite",
