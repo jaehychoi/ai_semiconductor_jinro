@@ -9,12 +9,12 @@
     "build": "vite build",
     "preview": "vite preview"
   },
-  "dependencies": {
-    "react": "^19.2.1",
+ "dependencies": {
+    "react": "^18.3.1",        <-- 18 버전으로 변경
     "lucide-react": "0.344.0",
     "@google/genai": "latest",
     "html2canvas": "latest",
-    "react-dom": "^19.2.1"
+    "react-dom": "^18.3.1"     <-- 18 버전으로 변경
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
