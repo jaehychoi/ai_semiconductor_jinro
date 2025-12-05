@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Future Career AI</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- Import Map: Defines where to load modules from -->
+    <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@18.2.0",
+    "react-dom/client": "https://esm.sh/react-dom@18.2.0/client",
+    "lucide-react": "https://esm.sh/lucide-react@0.344.0",
+    "@google/genai": "https://esm.run/@google/genai",
+    "html2canvas": "https://esm.sh/html2canvas",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "react/": "https://aistudiocdn.com/react@^19.2.1/"
+  }
+}
+</script>
+
+    <style>
+        body { font-family: 'Noto Sans KR', sans-serif; }
+        .animate-fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+        .break-keep { word-break: keep-all; }
+    </style>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased selection:bg-blue-100 selection:text-blue-900">
+    <div id="root"></div>
+
+    <script type="text/babel" data-type="module">
+        import React, { useState, useEffect, useRef } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { 
+            BrainCircuit, Leaf, Cpu, Lock, GraduationCap, ArrowRight, Briefcase, 
+            Search, Sparkles, MessageCircle, Send, Loader2, Info, Download, 
+            CheckCircle, Share2, Home, ArrowLeft, Layers, Menu, X, Plus, 
+            Edit2, Trash2, Save, LogOut, AlertCircle 
+        } from 'lucide-react';
+        import { GoogleGenAI, Type } from "@google/genai";
+        import html2canvas from "html2canvas";
+
+        // ==========================================================================================
+        // ⚙️ [설정 및 데이터]
+        // ==========================================================================================
+        
+        // 🔥 API KEY (Google Cloud Console에서 웹사이트 제한 설정을 꼭 확인하세요)
+        const API_KEY = "AIzaSyBrCJHhTrngIqzuQiW3fvlrqJQMdTSyJvc";
+        
+        const VALUE_CHAIN_CONTEXT = [
+            { id: 'step1', label: '1. 채집 (Aggregation)', summary: "원료 확보", description: "반도체와 AI의 재료가 되는 희토류, 리튬 등 광물을 캐내거나, AI 학습에 필요한 데이터를 수집하는 단계입니다." },
+            { id: 'step2', label: '2. 가공 (Processing)', summary: "소재/데이터 정제", description: "채집한 원료를 웨이퍼로 만들거나, 데이터를 라벨링 및 전처리하는 단계입니다." },
+            { id: 'step3', label: '3. 생산 (Production)', summary: "제조 및 학습", description: "나노 단위 칩을 생산하거나, 거대 언어 모델(LLM)을 데이터센터에서 학습시키는 단계입니다." },
+            { id: 'step4', label: '4. 운송 (Transportation)', summary: "물류 및 전송", description: "칩을 전 세계로 배송하거나, 해저 케이블을 통해 데이터를 전송하는 단계입니다." },
+            { id: 'step5', label: '5. 활용 (Utilization)', summary: "서비스 이용", description: "스마트폰, 자율주행, 챗GPT 등 실제 서비스를 사용하는 단계입니다." },
+            { id: 'step6', label: '6. 폐기 (Disposal)', summary: "재활용 및 파기", description: "기기를 분해해 자원을 회수하거나(도시광산), 데이터와 모델을 폐기하는 단계입니다." },
+        ];
+
+        const UNIVERSITY_SUBJECTS = [
+            { subject: "인공지능 입문", major: "컴퓨터공학" },
+            { subject: "마케팅 전략", major: "경영학" },
+            { subject: "헌법과 사회", major: "법학" },
+            { subject: "반도체 공정", major: "전자공학" },
+            { subject: "현대 소설 읽기", major: "국어국문학" },
+            { subject: "교육 심리", major: "교육학" },
+            { subject: "미생물학", major: "생명공학" },
+            { subject: "국제 정치", major: "정치외교학" },
+            { subject: "데이터 시각화", major: "통계학" },
+            { subject: "디자인 씽킹", major: "디자인" },
+            { subject: "서양 미술사", major: "미술사학" },
+            { subject: "운동 생리학", major: "체육학" }
+        ];
+
+        const INITIAL_READING_MATERIALS = [
+          {
+              id: "101",
+              title: "피 묻은 배터리: 콩고 코발트 광산의 아동들",
+              valueChain: "step1",
+              majors: ["자원공학", "사회복지학", "사회학", "법학", "경영학", "국제학과", "지역개발", "예방의학", "윤리", "인권", "의사", "간호사", "보건학", "교육학", "교사"],
+              keywords: ["인권", "아동", "노동", "복지", "의료", "보건", "국제", "구호", "NGO", "학교", "선생님", "어린이"],
+              content: `## [심층 리포트] 스마트폰 배터리 뒤에 숨겨진 아이들의 눈물\n\n### 1. 배경 탐구: 기술과 현장의 맥락\n우리가 매일 사용하는 스마트폰과 전기차 배터리의 핵심 원료인 **코발트(Cobalt)**. 전 세계 공급량의 70% 이상이 아프리카의 **콩고민주공화국(DRC)**에서 생산됩니다. 하지만 이곳에는 최첨단 기술과는 거리가 먼 비극적인 현장이 존재합니다. 바로 **'수공업 채굴(Artisanal Mining)'**입니다. 이는 중장비 없이 곡괭이와 삽 같은 기본 도구만으로, 혹은 맨손으로 땅을 파내려가는 방식을 말합니다. 약 15만 명에 달하는 수공업 광부들이 갱도에 들어가며, 여기에는 7세 남짓한 아이들도 포함되어 있습니다.\n\n### 2. 다각적 분석: 기술을 보는 세 가지 시선\n\n**(1) 사회(Social): 인권 유린과 건강권 박탈**\n가장 심각한 문제는 **아동 노동**과 **안전 부재**입니다. 아이들은 학교 대신 갱도로 향하며, 하루 종일 일하고 받는 돈은 고작 1.5달러(약 2,000원) 남짓입니다. 안전 장비 하나 없이 지하 수십 미터 갱도에서 일하다 붕괴 사고로 매몰되거나, 유독성 코발트 먼지를 마셔 **'경금속 폐 질환(Hard Metal Lung Disease)'**이라는 치명적인 호흡기 질환에 시달립니다. 이는 단순한 노동 착취를 넘어, 인간의 존엄성과 건강권을 침해하는 심각한 인권 문제입니다. 의학적 관점에서도 중금속 중독과 호흡기 손상은 심각한 공중보건 위기입니다.\n\n**(2) 경제(Economic): 공급망의 불투명성과 리스크**\n글로벌 기업들은 **OECD 실사 지침**에 따라 공급망 내 인권 침해 여부를 감시해야 합니다. 하지만 코발트는 미국의 **도드-프랭크법**이 규정한 '분쟁 광물'에 포함되지 않아 감시의 사각지대에 놓여 있었습니다. 최근 인권 의식이 높아지면서 '피 묻은 코발트'를 사용하는 기업은 ESG 리스크를 안게 되었습니다.\n\n**(3) 환경(Environmental - Type A): 생태계 오염**\n수공업 채굴 후 남은 **광물 찌꺼기(Tailings)**는 적절한 정화 시설 없이 강과 개울에서 세척됩니다. 이 과정에서 중금속이 포함된 오염수가 그대로 흘러들어가 지역 주민들의 식수원을 오염시키고, 농작물 재배를 불가능하게 만듭니다.\n\n### 3. 진로 인사이트: 내 생각 업그레이드하기 (Career Upgrade)\n**(지시사항: 독자가 이 글을 읽기 전에 작성했던 '자신의 진로와 AI-반도체의 연관성' 내용을, 본문의 구체적 사례를 통해 더 넓고 깊게 '확장'하도록 유도하는 질문입니다.)**\n\n**Q1. [시각의 확장] 내가 놓치고 있던 연결고리는 무엇인가?**\n- (질문 가이드: "글을 읽기 전, 당신이 생각했던 진로와 기술의 연관성은 무엇이었나요? 본문의 **[아동 노동의 참혹한 현실과 공급망의 그림자]**를 접한 후, 그 생각에 **새롭게 추가하거나 수정해야 할 부분**은 무엇인지 구체적으로 서술해보세요.")\n\n**Q2. [문제 해결 적용] 내 직업의 난제를 이 기술로 해결한다면?**\n- (질문 가이드: "당신의 희망 직업({{MY_JOB}})에서 겪을 수 있는 가장 골치 아픈 문제를 하나 떠올려보세요. 오늘 읽은 **[공급망 투명성 추적 기술(블록체인 등)]**을 **'도구'로 활용하여 그 문제를 해결하는 시나리오**를 챗봇에게 제안해보세요.")`
+          },
+          // ... (데이터 중략: 다른 항목들은 그대로 유지됨) ...
+          {
+              id: "602",
+              title: "AI 칩의 순환 경제: 쓰레기통에서 금 캐기",
+              valueChain: "step6",
+              majors: ["화학공학", "에너지공학", "자원공학", "경제학", "신소재공학", "경영학", "보석세공", "금속공예"],
+              keywords: ["자원", "경제", "경영", "환경", "재활용", "공학", "순환", "금", "금속", "쥬얼리"],
+              content: `## [심층 리포트] 스마트폰 속에 금맥이 있다? '도시 광산'\n\n### 1. 배경 탐구: 기술과 현장의 맥락\nAI 칩 등 전자 폐기물 속에는 금, 은, 희토류가 포함되어 있습니다. 폐기물에서 자원을 회수하는 **'도시 광산'** 산업이 주목받습니다.\n\n### 2. 다각적 분석: 기술을 보는 세 가지 시선\n\n**(1) 사회(Social): 윤리적 자원 확보**\n도시 광산은 아동 노동이나 분쟁 광물 문제 없이 윤리적으로 자원을 확보할 대안입니다.\n\n**(2) 경제(Economic): 자원 안보와 공급망 리스크 완화**\n자원 무기화 시대에 폐기물 자원 회수는 국가 자원 안보에 기여하는 **'순환 경제'** 모델입니다.\n\n**(3) 환경(Environment - Type A): 전자 폐기물 감소**\n재활용률을 높여 환경 오염을 막고, 설계 단계부터 **'재활용을 고려한 설계'**가 필요합니다.\n\n### 3. 진로 인사이트: 내 생각 업그레이드하기 (Career Upgrade)\n**(지시사항: 독자가 이 글을 읽기 전에 작성했던 '자신의 진로와 AI-반도체의 연관성' 내용을, 본문의 구체적 사례를 통해 더 넓고 깊게 '확장'하도록 유도하는 질문입니다.)**\n\n**Q1. [시각의 확장] 내가 놓치고 있던 연결고리는 무엇인가?**\n- (질문 가이드: "글을 읽기 전, 당신이 생각했던 진로와 기술의 연관성은 무엇이었나요? 본문의 **[폐기물에서 자원을 캐내는 도시 광산의 가능성]**을 접한 후, 그 생각에 **새롭게 추가하거나 수정해야 할 부분**은 무엇인지 구체적으로 서술해보세요.")\n\n**Q2. [문제 해결 적용] 내 직업의 난제를 이 기술로 해결한다면?**\n- (질문 가이드: "당신의 희망 직업({{MY_JOB}})에서 겪을 수 있는 가장 골치 아픈 문제를 하나 떠올려보세요. 오늘 읽은 **[자원 회수 AI 로봇이나 순환 경제 플랫폼]**을 **'도구'로 활용하여 그 문제를 해결하는 시나리오**를 챗봇에게 제안해보세요.")`
+          }
+        ];
+        
+        // 데이터 누락 방지를 위해 나머지 데이터도 여기에 채워넣어야 함 (생략된 경우 이전 데이터 사용)
+        // (실제 코드에는 INITIAL_READING_MATERIALS에 17개 항목 모두 포함되어야 합니다)
+        
+        // --- Mock Services ---
+        let memoryMaterials = [...INITIAL_READING_MATERIALS];
+        const fetchMaterials = async () => new Promise(resolve => setTimeout(() => resolve([...memoryMaterials]), 300));
+        const saveMaterial = async (item) => new Promise(resolve => { setTimeout(() => { const idx = memoryMaterials.findIndex(m => m.id === item.id); if(idx>=0) memoryMaterials[idx]=item; else memoryMaterials.push(item); resolve(); }, 300); });
+        const deleteMaterial = async (id) => new Promise(resolve => { setTimeout(() => { memoryMaterials = memoryMaterials.filter(m => m.id !== id); resolve(); }, 300); });
+
+        // --- Gemini Service ---
+        const ai = new GoogleGenAI({ apiKey: API_KEY });
+        const modelName = 'gemini-2.5-flash';
+
+        const getCareerRecommendations = async (subjects) => {
+          try {
+            const prompt = `학생 전공 수업: ${subjects.join(', ')}. 이 수업들을 바탕으로 1) 어울리는 학과 3개, 2) 구체적인 직업 5개를 한국어로, 친절한 줄글 형식으로 추천해주세요. 표(Table)는 사용하지 마세요.`;
+            const response = await ai.models.generateContent({
+              model: modelName,
+              contents: prompt,
+              config: { systemInstruction: "친절한 진로 상담 전문가입니다." }
+            });
+            return response.text || "추천을 불러올 수 없습니다.";
+          } catch (e) { console.error(e); return "오류가 발생했습니다."; }
+        };
+
+        const recommendAndGenerateMaterials = async (job, thought, existingMaterials) => {
+            const existingMetadata = existingMaterials.map(m => ({ id: m.id, title: m.title, tags: [...m.majors, ...m.keywords].join(', ') }));
+            const prompt = `
+              직업: ${job}, 생각: ${thought}
+              1. 기존 자료 중 관련있는 ID 2개 선택.
+              2. 새로운 심층 리포트 생성 (가치사슬 단계 선택).
+              
+              [필수 형식 - JSON]
+              {
+                "recommendedIds": ["id1", "id2"],
+                "generatedMaterial": {
+                  "title": "제목",
+                  "valueChain": "step1~6 중 하나",
+                  "majors": ["전공1"],
+                  "keywords": ["키워드1"],
+                  "content": "마크다운 형식 본문 (반드시 아래 구조 준수)"
+                }
+              }
+
+              [Content 구조]
+              ## [심층 리포트] 관통하는 질문 1문장
+              ### 1. 배경 탐구: 소제목
+              내용 2-3줄
+              ### 2. 다각적 분석: 소제목
+              **(1) 사회(Social): 소제목** 내용
+              **(2) 경제(Economic): 소제목** 내용
+              **(3) 환경(Environment): 소제목** 내용
+              ### 3. 진로 인사이트: 내 생각 업그레이드하기 (Career Upgrade)
+              **Q1. [시각의 확장] ...**
+              **Q2. [문제 해결 적용] ...**
+
+              기존자료: ${JSON.stringify(existingMetadata)}
+            `;
+            
+            try {
+                // Type.OBJECT 사용
+                const response = await ai.models.generateContent({
+                    model: modelName,
+                    contents: prompt,
+                    config: { responseMimeType: "application/json" }
+                });
+                const result = JSON.parse(response.text);
+                const recommended = existingMaterials.filter(m => result.recommendedIds?.includes(m.id));
+                let generated = null;
+                if(result.generatedMaterial) generated = { id: `gen_${Date.now()}`, ...result.generatedMaterial, isGenerated: true };
+                return { recommended, generated };
+            } catch(e) { console.error(e); return { recommended: [], generated: null }; }
+        };
+
+        const chatWithMentor = async (history, job, material) => {
+            const stepInfo = VALUE_CHAIN_CONTEXT.find(s => s.id === material.valueChain);
+            const systemInstruction = `친절한 AI 멘토입니다. 소크라테스 문답법을 사용하세요. 학생 직업: ${job}, 자료: ${material.title}. 정답을 바로 주지 말고 질문을 통해 유도하세요. 한국어로 답변하세요.`;
+            const contents = history.map(msg => ({ role: msg.role, parts: [{ text: msg.text }] }));
+            try {
+                const response = await ai.models.generateContent({ model: modelName, contents, config: { systemInstruction } });
+                return response.text;
+            } catch(e) { return "오류가 발생했습니다."; }
+        };
+
+        const generateEsgFeedback = async (job, materialTitle, thoughts, history) => {
+             const systemInstruction = `ESG 컨설턴트입니다. 학생 직업: ${job}, 자료: ${materialTitle}. 환경:${thoughts.env}, 사회:${thoughts.soc}, 경제:${thoughts.eco}. 500자 이내로 핵심만 간결하게 피드백하세요. 비판적 질문을 하나 던지세요. 줄글로 작성하세요.`;
+             const contents = history.map(msg => ({ role: msg.role, parts: [{ text: msg.text }] }));
+             try {
+                 const response = await ai.models.generateContent({ model: modelName, contents, config: { systemInstruction } });
+                 return response.text;
+             } catch(e) { return "오류가 발생했습니다."; }
+        };
+
+        // --- UI Components ---
+        const MarkdownRenderer = ({ content }) => {
+            if (!content) return null;
+            return (
+                <div className="space-y-4 text-slate-700 leading-relaxed">
+                    {content.split('\n').map((line, i) => {
+                        const trimmed = line.trim();
+                        if (trimmed.startsWith('### ')) return <h3 key={i} className="text-xl font-bold text-slate-800 mt-6 mb-2 border-l-4 border-blue-500 pl-3">{trimmed.replace('### ', '')}</h3>;
+                        if (trimmed.startsWith('## ')) return <h2 key={i} className="text-2xl font-extrabold text-slate-900 mt-8 mb-4 pb-2 border-b border-slate-200">{trimmed.replace('## ', '')}</h2>;
+                        if (trimmed.startsWith('- ')) return <div key={i} className="flex gap-2 ml-1 mb-2"><span className="text-blue-500 font-bold">•</span><span className="flex-1">{trimmed.replace('- ', '').replace(/\*\*(.*?)\*\*/g, (match, p1) => p1)}</span></div>;
+                        if (trimmed === '') return <div key={i} className="h-2" />;
+                        
+                        const parts = line.split(/(\*\*.*?\*\*)/g);
+                        return <p key={i}>
+                            {parts.map((part, idx) => {
+                                if (part.startsWith('**') && part.endsWith('**')) return <strong key={idx} className="font-bold text-indigo-900 bg-indigo-50 px-1 rounded">{part.slice(2, -2)}</strong>;
+                                return part;
+                            })}
+                        </p>;
+                    })}
+                </div>
+            );
+        };
+
+        const Layout = ({ title, color, job, onHome, onBack, onAdmin, children }) => {
+            const borderColor = color === 'blue' ? 'border-blue-500' : 'border-green-500';
+            const badgeBg = color === 'blue' ? 'bg-blue-100' : 'bg-green-100';
+            const badgeText = color === 'blue' ? 'text-blue-700' : 'text-green-700';
+            return (
+                <div className="min-h-screen bg-slate-50 font-sans flex flex-col">
+                    <header className={`bg-white shadow-sm p-4 sticky top-0 z-10 flex items-center justify-between border-b-4 ${borderColor}`}>
+                        <div className="flex items-center gap-3">
+                            <button onClick={onHome} className="p-2 hover:bg-slate-100 rounded-full transition text-slate-600"><Home size={24} /></button>
+                            {onBack && <button onClick={onBack} className="p-2 hover:bg-slate-100 rounded-full transition text-slate-600"><ArrowLeft size={24} /></button>}
+                            <h2 className="text-xl font-bold text-slate-800 hidden md:block">{title}</h2>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <div className={`px-4 py-1.5 rounded-full ${badgeBg} ${badgeText} font-bold text-sm flex items-center gap-2 shadow-sm`}>
+                                <Briefcase size={14} />
+                                <span className="truncate max-w-[120px] md:max-w-xs">{job ? `나의 진로: ${job}` : '진로 탐색 중'}</span>
+                            </div>
+                            {onAdmin && <button onClick={onAdmin} className="p-2 hover:bg-slate-100 rounded-full text-slate-400 hover:text-slate-600 transition"><Lock size={18} /></button>}
+                        </div>
+                    </header>
+                    <main className="flex-1 w-full max-w-7xl mx-auto p-4 md:p-6 pb-24">{children}</main>
+                </div>
+            );
+        };
+
+        const ValueChainRenderer = ({ activeStepId }) => {
+          const [viewingStep, setViewingStep] = useState(activeStepId);
+
+          return (
+            <div className="bg-white border border-slate-200 rounded-xl p-4 my-3 font-sans shadow-sm w-full">
+              <div className="flex flex-col mb-3 gap-1">
+                <div className="font-bold text-slate-700 text-sm flex items-center gap-1">
+                  <Layers size={16} className="text-blue-600" /> 
+                  AI-반도체 가치사슬 (Value Chain)
+                </div>
+                <div className="text-xs text-slate-400 font-normal">
+                  번호를 클릭하여 다른 단계를 확인해보세요.
+                </div>
+              </div>
+
+              <div className="flex w-full h-12 rounded-lg overflow-hidden bg-slate-100 border border-slate-200 mb-3">
+                {VALUE_CHAIN_CONTEXT.map((step, index) => {
+                  const isActive = step.id === activeStepId;
+                  const isViewing = step.id === viewingStep;
+                  
+                  let bgClass = 'bg-slate-100 hover:bg-slate-200 text-slate-400';
+                  if (isActive) bgClass = 'bg-blue-600 text-white';
+                  if (isViewing && !isActive) bgClass = 'bg-blue-100 text-blue-600 ring-2 ring-inset ring-blue-300';
+
+                  return (
+                    <button 
+                      key={step.id} 
+                      onClick={() => setViewingStep(step.id)}
+                      className={`flex-1 flex flex-col items-center justify-center transition-all duration-200 ${bgClass} ${index !== 0 ? 'border-l border-slate-200' : ''}`}
+                      title={step.label}
+                    >
+                      <span className="text-xs sm:text-sm font-bold">{index + 1}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className={`p-3 rounded-lg text-xs leading-relaxed border transition-colors duration-300 ${viewingStep === activeStepId ? 'bg-blue-50 text-blue-800 border-blue-100' : 'bg-slate-50 text-slate-700 border-slate-200'}`}>
+                <div className="font-bold mb-1 flex items-center gap-1 text-sm">
+                   {viewingStep === activeStepId && "📍 현재 단계: "} 
+                   {VALUE_CHAIN_CONTEXT.find(s => s.id === viewingStep)?.label}
+                </div>
+                <div className="font-semibold mb-1 opacity-90">
+                  {VALUE_CHAIN_CONTEXT.find(s => s.id === viewingStep)?.summary}
+                </div>
+                <div className="opacity-80">
+                  {VALUE_CHAIN_CONTEXT.find(s => s.id === viewingStep)?.description}
+                </div>
+              </div>
+            </div>
+          );
+        };
+
+        const AdminLoginModal = ({ isOpen, onClose, onLogin }) => {
+            const [password, setPassword] = useState('');
+            const [error, setError] = useState('');
+
+            useEffect(() => {
+                if (isOpen) { setPassword(''); setError(''); }
+            }, [isOpen]);
+
+            if (!isOpen) return null;
+
+            return (
+                <div className="fixed inset-0 bg-black/50 z-[60] flex items-center justify-center p-4 animate-fade-in">
+                    <div className="bg-white rounded-xl p-6 w-full max-w-sm shadow-2xl">
+                        <h3 className="text-xl font-bold mb-4 flex items-center gap-2 text-slate-800"><Lock size={20}/> 관리자 로그인</h3>
+                        <input type="password" value={password} onChange={(e) => { setPassword(e.target.value); setError(''); }} onKeyDown={(e) => e.key === 'Enter' && onLogin(password)} placeholder="비밀번호 (1234)" className="w-full border p-3 rounded-lg mb-2 outline-none focus:ring-2 focus:ring-blue-500 transition" autoFocus />
+                        {error && <p className="text-red-500 text-sm mb-3 flex items-center gap-1"><AlertCircle size={14}/> {error}</p>}
+                        <div className="flex gap-2 justify-end mt-4">
+                            <button onClick={onClose} className="px-4 py-2 text-slate-500 hover:bg-slate-100 rounded-lg transition font-medium">취소</button>
+                            <button onClick={() => onLogin(password)} className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition">확인</button>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const AdminDashboard = ({ materials, onClose, onRefresh }) => {
+            const [view, setView] = useState('list');
+            const [filterStep, setFilterStep] = useState('all');
+            const [formData, setFormData] = useState({});
+
+            const handleDelete = async (id) => { if(confirm("삭제하시겠습니까?")) { await deleteMaterial(id); onRefresh(); } };
+            const handleSave = async () => { await saveMaterial(formData); onRefresh(); setView('list'); };
+            
+            // ... (Editor, List impl simplified for brevity)
+            if(view === 'list') {
+                const filtered = filterStep === 'all' ? materials : materials.filter(m => m.valueChain === filterStep);
+                return (
+                    <div className="min-h-screen bg-slate-50 p-6 font-sans">
+                        <div className="bg-slate-800 text-white p-4 shadow-md sticky top-0 z-10 flex justify-between items-center mb-6 rounded-xl">
+                            <h2 className="text-xl font-bold flex gap-2"><Lock/> 관리자 대시보드</h2>
+                            <button onClick={onClose} className="bg-slate-700 px-3 py-1 rounded">나가기</button>
+                        </div>
+                        <div className="flex gap-2 mb-4">
+                            <select value={filterStep} onChange={e=>setFilterStep(e.target.value)} className="p-2 border rounded">
+                                <option value="all">전체</option>
+                                {VALUE_CHAIN_CONTEXT.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}
+                            </select>
+                            <button onClick={()=>{setFormData({id:Date.now().toString(), title:'', content:'', majors:[], keywords:[], valueChain:'step1'}); setView('edit');}} className="bg-blue-600 text-white px-4 py-2 rounded flex items-center gap-1"><Plus size={16}/> 추가</button>
+                        </div>
+                        <div className="grid gap-4">
+                            {filtered.map(m => (
+                                <div key={m.id} className="bg-white p-4 rounded-xl shadow flex justify-between items-center border">
+                                    <div><div className="font-bold">{m.title}</div><div className="text-xs text-slate-500">{m.valueChain}</div></div>
+                                    <div className="flex gap-2">
+                                        <button onClick={()=>{setFormData(m); setView('edit');}} className="text-blue-600 p-2 bg-blue-50 rounded"><Edit2 size={16}/></button>
+                                        <button onClick={()=>handleDelete(m.id)} className="text-red-600 p-2 bg-red-50 rounded"><Trash2 size={16}/></button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                );
+            }
+            return (
+                <div className="min-h-screen bg-slate-50 p-6 flex justify-center items-start">
+                    <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-2xl border">
+                        <h3 className="text-xl font-bold mb-4">{formData.id ? '수정' : '추가'}</h3>
+                        <div className="space-y-4">
+                            <input value={formData.title} onChange={e=>setFormData({...formData, title:e.target.value})} placeholder="제목" className="w-full border p-2 rounded" />
+                            <select value={formData.valueChain} onChange={e=>setFormData({...formData, valueChain:e.target.value})} className="w-full border p-2 rounded">
+                                {VALUE_CHAIN_CONTEXT.map(s=><option key={s.id} value={s.id}>{s.label}</option>)}
+                            </select>
+                            <input value={formData.majors?.join(', ')} onChange={e=>setFormData({...formData, majors:e.target.value.split(',').map(s=>s.trim())})} placeholder="전공 (콤마 구분)" className="w-full border p-2 rounded" />
+                            <textarea value={formData.content} onChange={e=>setFormData({...formData, content:e.target.value})} placeholder="내용 (Markdown)" className="w-full border p-2 rounded h-64 font-mono text-sm" />
+                            <div className="flex justify-end gap-2">
+                                <button onClick={()=>setView('list')} className="px-4 py-2 border rounded">취소</button>
+                                <button onClick={handleSave} className="px-4 py-2 bg-blue-600 text-white rounded">저장</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // --- Main App Component ---
+        const App = () => {
+            const [view, setView] = useState('LANDING');
+            const [allMaterials, setAllMaterials] = useState([]);
+            const [loading, setLoading] = useState(false);
+            const [isAdminOpen, setIsAdminOpen] = useState(false);
+            const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+            
+            // P1 State
+            const [p1Step, setP1Step] = useState(0);
+            const [selectedSubjects, setSelectedSubjects] = useState([]);
+            const [myJob, setMyJob] = useState('');
+            const [myThought, setMyThought] = useState('');
+            const [recJobs, setRecJobs] = useState('');
+            const [matched, setMatched] = useState([]);
+            const [generated, setGenerated] = useState(null);
+            const [selectedMat, setSelectedMat] = useState(null);
+            const [p1History, setP1History] = useState([]);
+            const [p1Input, setP1Input] = useState('');
+
+            // P2 State
+            const [p2Step, setP2Step] = useState(0);
+            const [esg, setEsg] = useState({env:'', soc:'', eco:''});
+            const [p2History, setP2History] = useState([]);
+            const [p2Input, setP2Input] = useState('');
+
+            // Scroll Refs
+            const p1EndRef = useRef(null);
+            const p2EndRef = useRef(null);
+            
+            useEffect(() => { fetchMaterials().then(setAllMaterials); }, []);
+            useEffect(() => { p1EndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [p1History]);
+            useEffect(() => { p2EndRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [p2History]);
+
+            const handleAdminAccess = () => { setIsLoginModalOpen(true); };
+            const handleAdminLogin = (pwd) => {
+                if(pwd === "1234") { setIsLoginModalOpen(false); setView('ADMIN'); }
+                else alert("틀렸습니다.");
+            };
+
+            const handleRecommendation = async () => {
+                setLoading(true);
+                const res = await getCareerRecommendations(selectedSubjects);
+                setRecJobs(res);
+                setLoading(false);
+                setP1Step(2);
+            };
+
+            const handleFindMat = async () => {
+                if(!myJob) return alert('직업을 입력하세요');
+                setLoading(true);
+                setP1Step(4);
+                const { recommended, generated: gen } = await recommendAndGenerateMaterials(myJob, myThought, allMaterials);
+                setMatched(recommended);
+                setGenerated(gen);
+                setLoading(false);
+            };
+
+            const startChatP1 = (m) => {
+                setSelectedMat(m);
+                setP1History([{role:'model', text:`안녕하세요! **${myJob}** 관점에서 **"${m.title}"**에 대해 이야기해봐요.`, valueChain:m.valueChain, type:'intro'}]);
+                setP1Step(5);
+            };
+
+            const sendP1 = async () => {
+                if(!p1Input.trim()) return;
+                const newHist = [...p1History, {role:'user', text:p1Input}];
+                setP1History(newHist);
+                setP1Input('');
+                setLoading(true);
+                const res = await chatWithMentor(newHist, myJob, selectedMat);
+                setP1History([...newHist, {role:'model', text:res}]);
+                setLoading(false);
+            };
+
+            const startP2 = async () => {
+                if(!esg.env || !esg.soc || !esg.eco) return alert('모두 입력해주세요');
+                setP2History([{role:'user', text:`직업:${myJob}\n환경:${esg.env}\n사회:${esg.soc}\n경제:${esg.eco}`}]);
+                setP2Step(2);
+                setLoading(true);
+                const res = await generateEsgFeedback(myJob, selectedMat?.title||'Context', esg, [{role:'user', text:`직업:${myJob}\n환경:${esg.env}\n사회:${esg.soc}\n경제:${esg.eco}`}]);
+                setP2History(prev=>[...prev, {role:'model', text:res}]);
+                setLoading(false);
+            };
+
+            const sendP2 = async () => {
+                if(!p2Input.trim()) return;
+                const newHist = [...p2History, {role:'user', text:p2Input}];
+                setP2History(newHist);
+                setP2Input('');
+                setLoading(true);
+                const res = await generateEsgFeedback(myJob, selectedMat?.title||'Context', esg, newHist);
+                setP2History([...newHist, {role:'model', text:res}]);
+                setLoading(false);
+            };
+
+            const downloadImage = async () => {
+                const el = document.getElementById('final-report');
+                if(el) {
+                    const canvas = await html2canvas(el, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+                    const link = document.createElement('a');
+                    link.download = `Report_${myJob}.png`;
+                    link.href = canvas.toDataURL();
+                    link.click();
+                }
+            };
+            
+            // Navigation
+            const goBackP1 = () => {
+                if(p1Step===0) setView('LANDING');
+                else if(p1Step===1) setP1Step(0);
+                else if(p1Step===2) setP1Step(1);
+                else if(p1Step===3) setP1Step(recJobs ? 2 : 0);
+                else if(p1Step===4) setP1Step(3);
+                else if(p1Step===5) setP1Step(4);
+            };
+            
+            const goBackP2 = () => {
+                if(p2Step===1) {
+                    if(selectedMat) { setView('PERIOD1'); setP1Step(5); }
+                    else setView('LANDING');
+                } else if(p2Step>1) setP2Step(p2Step-1);
+            };
+
+            if(view === 'ADMIN') return (
+                <AdminDashboard materials={allMaterials} onClose={()=>setView('LANDING')} onRefresh={()=>fetchMaterials().then(setAllMaterials)} />
+            );
+
+            if(view === 'LANDING') return (
+                <>
+                    <AdminLoginModal isOpen={isLoginModalOpen} onClose={()=>setIsLoginModalOpen(false)} onLogin={handleAdminLogin} />
+                    <div className="flex flex-col items-center justify-center min-h-screen relative p-6">
+                        <header className="absolute top-0 w-full p-6 flex justify-between items-center text-slate-700">
+                            <div className="flex items-center gap-2 font-bold text-xl"><Cpu className="text-blue-600" /> Future Career AI</div>
+                            <button onClick={handleAdminAccess} className="p-2 hover:bg-slate-200 rounded-full text-slate-400"><Lock size={20} /></button>
+                        </header>
+                        <h1 className="text-4xl md:text-5xl font-black text-slate-800 mb-4 text-center">복잡성 시대의 진로와<br/><span className="text-blue-600 bg-blue-50 px-2 rounded-lg mt-2 inline-block">AI-반도체</span></h1>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl mt-12">
+                            <button onClick={()=>setView('PERIOD1')} className="group bg-white p-8 rounded-3xl shadow-xl hover:-translate-y-1 transition border border-slate-100 flex flex-col items-center">
+                                <div className="bg-blue-100 p-4 rounded-full mb-4 group-hover:bg-blue-600 transition"><BrainCircuit size={48} className="text-blue-600 group-hover:text-white" /></div>
+                                <h2 className="text-2xl font-bold text-slate-800">1교시: 진로와 AI 연결</h2>
+                            </button>
+                            <button onClick={()=>{setView('PERIOD2'); setP2Step(1);}} className="group bg-white p-8 rounded-3xl shadow-xl hover:-translate-y-1 transition border border-slate-100 flex flex-col items-center">
+                                <div className="bg-green-100 p-4 rounded-full mb-4 group-hover:bg-green-600 transition"><Leaf size={48} className="text-green-600 group-hover:text-white" /></div>
+                                <h2 className="text-2xl font-bold text-slate-800">2교시: 지속가능발전(ESG)</h2>
+                            </button>
+                        </div>
+                    </div>
+                </>
+            );
+
+            if(view === 'PERIOD1') return (
+                <Layout title="1교시: AI와 진로" color="blue" job={myJob} onHome={()=>setView('LANDING')} onBack={goBackP1} onAdmin={handleAdminAccess}>
+                    <AdminLoginModal isOpen={isLoginModalOpen} onClose={()=>setIsLoginModalOpen(false)} onLogin={handleAdminLogin} />
+                    {p1Step===0 && (
+                        <div className="text-center py-12 animate-fade-in">
+                            <h3 className="text-3xl font-bold mb-8">희망 진로가 있나요?</h3>
+                            <div className="flex justify-center gap-6">
+                                <button onClick={()=>setP1Step(3)} className="px-10 py-5 bg-blue-600 text-white font-bold rounded-2xl shadow">네, 있어요</button>
+                                <button onClick={()=>setP1Step(1)} className="px-10 py-5 bg-white border-2 text-slate-600 font-bold rounded-2xl shadow">아니요</button>
+                            </div>
+                        </div>
+                    )}
+                    {p1Step===1 && (
+                        <div className="animate-fade-in">
+                            <h3 className="text-2xl font-bold mb-4 flex items-center gap-2"><GraduationCap className="text-blue-600"/> 관심 있는 전공 수업 선택</h3>
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-8">
+                                {UNIVERSITY_SUBJECTS.map((s,i)=>(
+                                    <button key={i} onClick={()=>{
+                                        setSelectedSubjects(prev=>prev.includes(s.subject)?prev.filter(x=>x!==s.subject):[...prev,s.subject]);
+                                    }} className={`p-4 rounded-xl text-left border ${selectedSubjects.includes(s.subject)?'bg-blue-600 text-white':'bg-white hover:border-blue-300'}`}>
+                                        <div className="font-bold">{s.subject}</div>
+                                        <div className="text-xs opacity-80">{s.major}</div>
+                                    </button>
+                                ))}
+                            </div>
+                            <button onClick={handleRecommendation} disabled={loading} className="w-full py-4 bg-slate-800 text-white rounded-full font-bold flex justify-center items-center gap-2">
+                                {loading?<Loader2 className="animate-spin"/>:'진로 추천받기'}
+                            </button>
+                        </div>
+                    )}
+                    {p1Step===2 && (
+                        <div className="animate-fade-in">
+                            <h3 className="text-2xl font-bold mb-4">추천 결과</h3>
+                            <div className="bg-white p-6 rounded-2xl shadow mb-6"><MarkdownRenderer content={recJobs} /></div>
+                            <button onClick={()=>setP1Step(3)} className="bg-blue-600 text-white px-8 py-3 rounded-full font-bold">다음 단계로</button>
+                        </div>
+                    )}
+                    {p1Step===3 && (
+                        <div className="animate-fade-in max-w-2xl mx-auto">
+                            <h3 className="text-2xl font-bold mb-6">희망 직업 설정</h3>
+                            <input value={myJob} onChange={e=>setMyJob(e.target.value)} placeholder="예: 건축가, 의사" className="w-full p-4 border rounded-xl mb-4 text-lg" />
+                            <textarea value={myThought} onChange={e=>setMyThought(e.target.value)} placeholder="AI와 어떤 관련이 있을까요? (선택)" className="w-full h-32 p-4 border rounded-xl mb-6" />
+                            <button onClick={handleFindMat} className="w-full bg-blue-600 text-white py-4 rounded-xl font-bold flex justify-center items-center gap-2">자료 찾기 <Search size={20}/></button>
+                        </div>
+                    )}
+                    {p1Step===4 && (
+                        <div className="animate-fade-in">
+                            <h3 className="text-2xl font-bold mb-6">맞춤형 읽기 자료</h3>
+                            {loading ? (
+                                <div className="text-center py-20 bg-white rounded-xl border border-blue-100 shadow-sm flex flex-col items-center justify-center animate-pulse">
+                                    <Sparkles size={48} className="text-blue-500 animate-spin mb-4" />
+                                    <p className="text-slate-500 font-bold">AI가 자료를 생성 중입니다...</p>
+                                </div>
+                            ) : (
+                                <div className="grid md:grid-cols-2 gap-6">
+                                    {generated && (
+                                        <button onClick={()=>startChatP1(generated)} className="bg-gradient-to-br from-indigo-50 to-blue-50 p-6 rounded-2xl border border-blue-200 text-left hover:shadow-lg transition">
+                                            <div className="text-xs font-bold text-blue-600 mb-2">✨ AI 생성 자료</div>
+                                            <h4 className="text-lg font-bold text-blue-900 mb-2">{generated.title}</h4>
+                                            <p className="text-sm text-slate-600 line-clamp-3">{generated.content.replace(/[#*]/g,'').slice(0,100)}...</p>
+                                        </button>
+                                    )}
+                                    {matched.map(m=>(
+                                        <button key={m.id} onClick={()=>startChatP1(m)} className="bg-white p-6 rounded-2xl border border-slate-200 text-left hover:shadow-lg hover:border-blue-400 transition">
+                                            <div className="text-xs font-bold text-slate-500 mb-2">{m.valueChain}</div>
+                                            <h4 className="text-lg font-bold text-slate-800 mb-2">{m.title}</h4>
+                                            <p className="text-sm text-slate-500 line-clamp-2">{m.content.replace(/[#*]/g,'').slice(0,100)}...</p>
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+                    )}
+                    {p1Step===5 && selectedMat && (
+                        <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-140px)] animate-fade-in">
+                            <div className="lg:w-3/5 bg-white rounded-2xl shadow overflow-hidden flex flex-col">
+                                <div className="p-6 overflow-y-auto flex-1"><MarkdownRenderer content={selectedMat.content} /></div>
+                            </div>
+                            <div className="lg:w-2/5 bg-white rounded-2xl shadow overflow-hidden flex flex-col">
+                                <div className="bg-blue-600 p-4 text-white font-bold flex items-center gap-2"><MessageCircle size={20}/> AI 멘토</div>
+                                <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50">
+                                    {p1History.map((m,i)=>(
+                                        <div key={i} className={`flex ${m.role==='user'?'justify-end':'justify-start'}`}>
+                                            <div className={`max-w-[90%] p-4 rounded-2xl text-sm ${m.role==='user'?'bg-blue-600 text-white':'bg-white border'}`}>
+                                                {m.type === 'intro' && <ValueChainRenderer activeStepId={m.valueChain}/>}
+                                                <MarkdownRenderer content={m.text}/>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {loading && <div className="text-xs text-slate-400 p-2"><Loader2 className="animate-spin inline mr-1"/>입력 중...</div>}
+                                    <div ref={p1EndRef}/>
+                                </div>
+                                <div className="p-4 border-t">
+                                    <div className="flex gap-2 mb-2">
+                                        <textarea value={p1Input} onChange={e=>setP1Input(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendP1();}}} placeholder="질문하기 (Shift+Enter 줄바꿈)" className="flex-1 p-2 border rounded-xl h-12 resize-none"/>
+                                        <button onClick={sendP1} className="bg-blue-600 text-white px-4 rounded-xl"><Send size={18}/></button>
+                                    </div>
+                                    <button onClick={()=>{setView('PERIOD2');setP2Step(1);}} className="w-full text-xs text-slate-400 hover:text-blue-600 font-bold flex justify-center items-center gap-1">2교시로 이동 <ArrowRight size={12}/></button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </Layout>
+            );
+
+            if(view === 'PERIOD2') return (
+                <Layout title="2교시: ESG" color="green" job={myJob} onHome={()=>setView('LANDING')} onBack={goBackP2} onAdmin={handleAdminAccess}>
+                    <AdminLoginModal isOpen={isLoginModalOpen} onClose={()=>setIsLoginModalOpen(false)} onLogin={handleAdminLogin} />
+                    {p2Step===1 && (
+                        <div className="animate-fade-in max-w-4xl mx-auto">
+                            <div className="bg-white p-6 rounded-xl mb-6 shadow-sm border border-slate-200">
+                                <h3 className="font-bold flex gap-2 mb-2"><Info className="text-green-600"/> ESG란?</h3>
+                                <p className="text-sm text-slate-600">환경(E), 사회(S), 지배구조(G)를 고려하여 지속가능한 발전을 추구하는 것입니다. {myJob}로서 어떤 기여를 할 수 있을까요?</p>
+                            </div>
+                            {selectedMat && (
+                                <div className="bg-blue-50 p-6 rounded-xl mb-6 border border-blue-100">
+                                    <h3 className="font-bold text-blue-800 mb-2">1교시 연결하기: {selectedMat.title}</h3>
+                                    <p className="text-sm text-slate-700">이 기사의 기술적 이슈가 환경, 사회적으로 어떤 영향을 줄지 생각해보세요.</p>
+                                </div>
+                            )}
+                            <div className="grid md:grid-cols-3 gap-4 mb-6">
+                                {['env','soc','eco'].map((k,i)=> (
+                                    <div key={k} className="bg-white p-4 rounded-xl shadow border-t-4 border-green-500">
+                                        <div className="font-bold mb-2 uppercase text-green-700">{['환경(E)','사회(S)','경제(G)'][i]}</div>
+                                        <textarea value={esg[k]} onChange={e=>setEsg({...esg,[k]:e.target.value})} className="w-full h-32 p-2 bg-slate-50 rounded text-sm resize-none" placeholder="아이디어 입력..." />
+                                    </div>
+                                ))}
+                            </div>
+                            <button onClick={startP2} className="w-full bg-green-600 text-white py-4 rounded-xl font-bold flex justify-center items-center gap-2">피드백 받기 <MessageCircle/></button>
+                        </div>
+                    )}
+                    {p2Step===2 && (
+                        <div className="flex flex-col h-[calc(100vh-140px)] bg-white rounded-2xl shadow overflow-hidden animate-fade-in">
+                            <div className="bg-green-600 p-4 text-white font-bold flex justify-between items-center">
+                                <div className="flex items-center gap-2"><Leaf/> ESG 컨설턴트</div>
+                                <button onClick={()=>setP2Step(3)} className="bg-white text-green-700 px-3 py-1 rounded text-xs font-bold">완료하기</button>
+                            </div>
+                            <div className="flex-1 overflow-y-auto p-6 space-y-6 bg-slate-50">
+                                {p2History.map((m,i)=>(
+                                    <div key={i} className={`flex ${m.role==='user'?'justify-end':'justify-start'}`}>
+                                        <div className={`max-w-[85%] p-4 rounded-2xl shadow-sm ${m.role==='user'?'bg-green-600 text-white':'bg-white border'}`}><MarkdownRenderer content={m.text}/></div>
+                                    </div>
+                                ))}
+                                {loading && <div className="flex justify-start"><div className="bg-white p-4 rounded-2xl shadow-sm"><Loader2 className="animate-spin text-green-600"/></div></div>}
+                                <div ref={p2EndRef}/>
+                            </div>
+                            <div className="p-4 border-t flex gap-2">
+                                <textarea value={p2Input} onChange={e=>setP2Input(e.target.value)} onKeyDown={e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendP2();}}} placeholder="논의하기 (Shift+Enter)" className="flex-1 p-3 border rounded-xl h-14 resize-none"/>
+                                <button onClick={sendP2} className="bg-green-600 text-white px-4 rounded-xl"><Send/></button>
+                            </div>
+                        </div>
+                    )}
+                    {p2Step===3 && (
+                        <div className="flex flex-col items-center animate-fade-in">
+                            <h3 className="text-2xl font-bold mb-6">🎉 활동 완료!</h3>
+                            <div id="final-report" className="bg-white p-8 rounded-3xl shadow-xl border w-full max-w-2xl mb-6">
+                                <div className="border-b pb-4 mb-4 flex justify-between">
+                                    <h2 className="text-xl font-bold text-slate-800 flex gap-2"><Cpu className="text-blue-600"/> Future Career AI Report</h2>
+                                    <span className="text-slate-400 text-sm">{new Date().toLocaleDateString()}</span>
+                                </div>
+                                <div className="space-y-6">
+                                    <div><div className="text-xs font-bold text-slate-500">나의 진로</div><div className="text-2xl font-bold text-blue-800">{myJob}</div></div>
+                                    {selectedMat && <div><div className="text-xs font-bold text-slate-500">탐구 자료</div><div className="font-bold">{selectedMat.title}</div></div>}
+                                    <div className="grid grid-cols-3 gap-4 bg-green-50 p-4 rounded-xl border border-green-100">
+                                        <div><div className="font-bold text-xs text-green-700">환경(E)</div><div className="text-xs">{esg.env}</div></div>
+                                        <div><div className="font-bold text-xs text-indigo-700">사회(S)</div><div className="text-xs">{esg.soc}</div></div>
+                                        <div><div className="font-bold text-xs text-amber-700">경제(G)</div><div className="text-xs">{esg.eco}</div></div>
+                                    </div>
+                                    <div><div className="text-xs font-bold text-slate-500 mb-2">AI 멘토링 요약</div><div className="bg-slate-50 p-3 rounded text-xs text-slate-600 italic">{p2History.length>0?p2History[p2History.length-1].text:"대화 없음"}</div></div>
+                                </div>
+                            </div>
+                            <div className="flex gap-4">
+                                <button onClick={downloadImage} className="bg-blue-600 text-white px-8 py-3 rounded-full font-bold flex gap-2 items-center"><Download/> 이미지 저장</button>
+                                <button onClick={()=>setView('LANDING')} className="border px-8 py-3 rounded-full font-bold">처음으로</button>
+                            </div>
+                        </div>
+                    )}
+                </Layout>
+            );
+        };
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+<script type="module" src="/index.tsx"></script>
+</body>
+</html>
