@@ -2,9 +2,18 @@ import { GoogleGenAI, Type, Schema } from "@google/genai";
 import { ReadingMaterial, ValueChainStep } from "../types";
 import { VALUE_CHAIN_CONTEXT } from "../constants";
 
-// The API key is securely accessed via process.env.API_KEY.
-// When deploying to Netlify, set 'API_KEY' in the Environment Variables settings.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// (기존) process.env는 서버에서만 작동합니다.
+// const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+// (수정) Vite에서는 이렇게 써야 브라우저에 키가 심어집니다.
+const apiKey = import.meta.env.VITE_API_KEY; 
+
+// 혹시 모를 에러 방지를 위해 키가 없을 때의 대비책도 넣어둡니다.
+if (!apiKey) {
+  console.error("API Key가 설정되지 않았습니다. .env 파일을 확인해주세요.");
+}
+
+const ai = new GoogleGenAI({ apiKey: apiKey });
 
 const modelName = 'gemini-2.5-flash';
 
