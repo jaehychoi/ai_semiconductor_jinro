@@ -1,12 +1,18 @@
 import { GoogleGenAI, Type, Schema } from "@google/genai";
-import { ReadingMaterial, ValueChainStep } from "../types";
+import { ReadingMaterial } from "../types";
 import { VALUE_CHAIN_CONTEXT } from "../constants";
 
-// (기존) process.env는 서버에서만 작동합니다.
-// const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// ============================================================================
+// [수정] .env 같은 거 안 쓰고, 그냥 여기에 키를 직접 적습니다.
+// 따옴표("") 안에 아까 그 AIzaSy... 로 시작하는 키를 붙여넣으세요.
+// ============================================================================
+const apiKey = "AIzaSy_여기에_본인의_긴_키를_그대로_붙여넣으세요"; 
 
-// (수정) Vite에서는 이렇게 써야 브라우저에 키가 심어집니다.
-const apiKey = import.meta.env.VITE_API_KEY; 
+// 아래는 건드릴 필요 없습니다.
+const ai = new GoogleGenAI({ apiKey: apiKey });
+const modelName = 'gemini-2.5-flash';
+
+// ... (나머지 코드는 그대로 둠)
 
 // 혹시 모를 에러 방지를 위해 키가 없을 때의 대비책도 넣어둡니다.
 if (!apiKey) {
