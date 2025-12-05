@@ -3,25 +3,22 @@ import { ReadingMaterial } from "../types";
 import { VALUE_CHAIN_CONTEXT } from "../constants";
 
 // ============================================================================
-// [수정] .env 같은 거 안 쓰고, 그냥 여기에 키를 직접 적습니다.
-// 따옴표("") 안에 아까 그 AIzaSy... 로 시작하는 키를 붙여넣으세요.
+// 1. API 키 설정 (직접 입력 방식)
 // ============================================================================
 const apiKey = "AIzaSyBrCJHhTrngIqzuQiW3fvlrqJQMdTSyJvc"; 
 
-// 아래는 건드릴 필요 없습니다.
-const ai = new GoogleGenAI({ apiKey: apiKey });
-const modelName = 'gemini-2.5-flash';
-
-// ... (나머지 코드는 그대로 둠)
-
-// 혹시 모를 에러 방지를 위해 키가 없을 때의 대비책도 넣어둡니다.
+// 키가 비어있을 경우를 대비한 안전장치
 if (!apiKey) {
-  console.error("API Key가 설정되지 않았습니다. .env 파일을 확인해주세요.");
+  console.error("🚨 API Key가 없습니다. 코드를 확인해주세요.");
 }
 
+// AI 모델 초기화 (한 번만 선언)
 const ai = new GoogleGenAI({ apiKey: apiKey });
-
 const modelName = 'gemini-2.5-flash';
+
+// ============================================================================
+// 2. 서비스 함수들
+// ============================================================================
 
 export const getCareerRecommendations = async (subjects: string[]): Promise<string> => {
   try {
@@ -56,7 +53,7 @@ export const recommendAndGenerateMaterials = async (
   existingMaterials: ReadingMaterial[]
 ): Promise<{ recommended: ReadingMaterial[], generated: ReadingMaterial | null }> => {
   
-  // 1. Prepare existing material metadata for the prompt
+  // 1. 기존 자료 메타데이터 준비
   const existingMetadata = existingMaterials.map(m => ({
     id: m.id,
     title: m.title,
@@ -107,7 +104,7 @@ export const recommendAndGenerateMaterials = async (
     ${JSON.stringify(existingMetadata)}
   `;
 
-  // Define Schema for structured output
+  // 스키마 정의
   const responseSchema: Schema = {
     type: Type.OBJECT,
     properties: {
@@ -144,10 +141,10 @@ export const recommendAndGenerateMaterials = async (
 
     const result = JSON.parse(response.text || "{}");
     
-    // Filter existing
+    // 추천 자료 필터링
     const recommended = existingMaterials.filter(m => result.recommendedIds?.includes(m.id));
     
-    // Format generated
+    // 생성 자료 포맷팅
     let generated: ReadingMaterial | null = null;
     if (result.generatedMaterial) {
       generated = {
@@ -190,7 +187,6 @@ export const chatWithMentor = async (
   `;
 
   try {
-    // Convert history to Gemini format
     const contents = history.map(msg => ({
       role: msg.role,
       parts: [{ text: msg.text }]
