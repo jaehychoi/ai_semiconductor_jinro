@@ -6,7 +6,7 @@ import { VALUE_CHAIN_CONTEXT } from "../constants";
 // [수정] .env 같은 거 안 쓰고, 그냥 여기에 키를 직접 적습니다.
 // 따옴표("") 안에 아까 그 AIzaSy... 로 시작하는 키를 붙여넣으세요.
 // ============================================================================
-const apiKey = "AIzaSy_여기에_본인의_긴_키를_그대로_붙여넣으세요"; 
+const apiKey = "AIzaSyBrCJHhTrngIqzuQiW3fvlrqJQMdTSyJvc"; 
 
 // 아래는 건드릴 필요 없습니다.
 const ai = new GoogleGenAI({ apiKey: apiKey });
